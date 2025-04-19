@@ -3,10 +3,47 @@ spring:
     name: edge-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 5s
+        pool:
+          type: elastic
+          max-idle-time: 15s
+          max-life-time: 60s
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET
+            series: SERVER_ERROR
+            exceptions: java.io.IOException, java.util.concurrent.TimeoutException
+            backoff:
+              firstBackOff: 50ms
+              maxBackOff: 500ms
+              factor: 2
+              basedOnPreviousValue: false
+      routes:
+        - id: catalog-route
+          uri: ${CATALOG_SERVICE_URL:http://localhost:9001}/cards
+          predicates:
+            - Path=/cards/**
+        - id: order-route
+          uri: ${ORDER_SERVICE_URL:http://localhost:9002}/orders
+          predicates:
+            - Path=/orders/**
 
-
-
-
+#wih the gateway setup it is telling the edge service the URL of each service and depending on which endpoint the user is trying to access it will forward the request 
+#To the appropriate application
+#elastic just means that the app will adjust on its own based on how many requests it is getting, fixed is alo an option for more control
+#idle time signifies how long to wait until closing the communication channel
+#the max life time signifies how much time to pass before closing the channel which is different from idle waiting time
+#filter name is jsut what kind of filter thats is readable to a human
+#how many times to retry, on which type of http request in this case GET
+#it only wants to do a retry on server errors so any errors in the 5XX range
+#and it should only rety when the specified java exceptions occur
+#Backoff is the typical backoff strategy to not overwhelm an app and cause a denial of service
 
 
 server:
