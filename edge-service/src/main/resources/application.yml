@@ -29,10 +29,19 @@ spring:
           uri: ${CATALOG_SERVICE_URL:http://localhost:9001}/cards
           predicates:
             - Path=/cards/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: catalogCircuitBreaker
+                fallbackUri: forward:/catalog-fallback
         - id: order-route
           uri: ${ORDER_SERVICE_URL:http://localhost:9002}/orders
           predicates:
             - Path=/orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderCircuitBreaker
 
 #wih the gateway setup it is telling the edge service the URL of each service and depending on which endpoint the user is trying to access it will forward the request 
 #To the appropriate application
@@ -44,7 +53,7 @@ spring:
 #it only wants to do a retry on server errors so any errors in the 5XX range
 #and it should only rety when the specified java exceptions occur
 #Backoff is the typical backoff strategy to not overwhelm an app and cause a denial of service
-
+#The circuit breaker code in the routes just establishes the initial circuit brekers for now and fallback URI
 
 server:
   port: 9000
