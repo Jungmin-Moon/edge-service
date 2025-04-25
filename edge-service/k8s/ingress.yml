@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress #tells what type to create
+metadata:
+  name: luckycardshop-ingress #name of the ingress
+spec:
+  ingressClassName: nginx #configures ingress controller responsible for managing  this object
+  rules:
+    - http: #tells to include rules for HTTP traffic
+      paths:
+        - path: / #default rule for all requests
+          pathType: Prefix
+          backend:
+            service:
+              name: edge-service #name of service where traffic should be forwarded
+              port:
+                number: 80

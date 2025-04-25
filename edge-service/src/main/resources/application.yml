@@ -13,6 +13,7 @@ spring:
           max-idle-time: 15s
           max-life-time: 60s
       default-filters:
+        - SaveSession
         - name: Retry
           args:
             retries: 3
@@ -30,6 +31,11 @@ spring:
               replenishRate: 10 #tokens dripped in bucket each second
               burstCapacity: 20 #number of requests to allow in bursts
               requestedTokens: 1 #cost of request
+  session:
+    store-type: redis
+    timeout: 10m
+    redis:
+      namespace: luckycardshop:edge
        
       routes:
         - id: catalog-route
