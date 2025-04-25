@@ -10,6 +10,6 @@ public class RateLimiterConfig {
 	
 	@Bean
 	public KeyResolver keyResolver() {
-		return exchange -> Mono.just("anonymous");
+		return exchange -> Mono.just("anonymous"); //constant key to apply rate limiting to
 	}
 }
