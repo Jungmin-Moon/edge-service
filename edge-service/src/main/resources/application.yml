@@ -24,6 +24,13 @@ spring:
               maxBackOff: 500ms
               factor: 2
               basedOnPreviousValue: false
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 10 #tokens dripped in bucket each second
+              burstCapacity: 20 #number of requests to allow in bursts
+              requestedTokens: 1 #cost of request
+       
       routes:
         - id: catalog-route
           uri: ${CATALOG_SERVICE_URL:http://localhost:9001}/cards
