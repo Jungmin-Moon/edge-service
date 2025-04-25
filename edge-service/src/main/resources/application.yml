@@ -42,7 +42,16 @@ spring:
             - name: CircuitBreaker
               args:
                 name: orderCircuitBreaker
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
 
+#connect-timeout sets the limit for how long to wait for a connection to be established
+#host is for the Redis Host and port is for the Redis Port
+#timeout is the time limit to get a response
 #wih the gateway setup it is telling the edge service the URL of each service and depending on which endpoint the user is trying to access it will forward the request 
 #To the appropriate application
 #elastic just means that the app will adjust on its own based on how many requests it is getting, fixed is alo an option for more control
