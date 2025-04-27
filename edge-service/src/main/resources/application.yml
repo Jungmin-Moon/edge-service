@@ -31,6 +31,8 @@ spring:
               replenishRate: 10 #tokens dripped in bucket each second
               burstCapacity: 20 #number of requests to allow in bursts
               requestedTokens: 1 #cost of request
+  main:
+    web-application-type: reactive
   session:
     store-type: redis
     timeout: 10m
