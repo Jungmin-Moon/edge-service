@@ -1,6 +1,7 @@
 package com.luckycardshop.edge_service.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -10,6 +11,11 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.CsrfToken;
+import org.springframework.web.server.WebFilter;
+
+import reactor.core.publisher.Mono;
 
 @EnableWebFluxSecurity
 public class SecurityConfig {
@@ -17,11 +23,25 @@ public class SecurityConfig {
 	
 	@Bean
 	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveClientRegistrationRepository clientRegistrationRepository) {
-		return http.authorizeExchange(exchange -> exchange.anyExchange().authenticated())
+		return http.authorizeExchange(exchange -> exchange.pathMatchers("/", "/*.css", "/*.js", "/favicon.ico").permitAll()
+										.pathMatchers(HttpMethod.GET, "/cards/**").permitAll().anyExchange().authenticated())
 				.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
 				.oauth2Login(Customizer.withDefaults()) //we are using oauth2 login instead
 				.logout(logout -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))) //custom logout handler
-					.build();
+				.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())) //used for Angular frontends
+				.build();
+	}
+	
+	@Bean //purpose is to sub to the CsrfToken reactive stream and ensures the value is extracted correctly
+	WebFilter csrfWebFilter() {
+		return (exchange, chain) -> {
+			exchange.getResponse().beforeCommit(() -> Mono.defer(() -> {
+				Mono<CsrfToken> csrfToken = exchange.getAttribute(CsrfToken.class.getName());
+				return csrfToken != null ? csrfToken.then() : Mono.empty();
+			}));
+			
+			return chain.filter(exchange);
+		};
 	}
 	
 	
@@ -35,4 +55,6 @@ public class SecurityConfig {
 		
 		return oidcLogoutSuccessHandler;
 	}
+	
+	
 }
