@@ -14,6 +14,7 @@ spring:
           max-life-time: 60s
       default-filters:
         - SaveSession
+        - TokenRelay
         - name: Retry
           args:
             retries: 3
