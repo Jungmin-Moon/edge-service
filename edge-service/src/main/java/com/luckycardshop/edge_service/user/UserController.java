@@ -18,7 +18,7 @@ public class UserController {
 				oidcUser.getPreferredUsername(),
 				oidcUser.getGivenName(),
 				oidcUser.getFamilyName(),
-				List.of("employee", "customer")
+				oidcUser.getClaimAsStringList("roles") //now instead of being hard coded, we jsut get it from the ID Token
 			);
 		
 		return Mono.just(user);
